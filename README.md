@@ -25,7 +25,7 @@ It reads your real controller and mirrors it to a virtual Xbox 360 controller (v
 
 The app lets you:
 - turn auto-fire on or off
-- set the fire speed (4 to 25 shots per second)
+- set the fire speed (1 to 60 shots per second): type a number and press Enter, or use − / +
 - choose which buttons auto-fire (RT, RB, LT)
 
 Settings are saved in `autofire_settings.json`.
@@ -43,7 +43,7 @@ Hold **View**, the small button left of the home/logo button, then tap the D-pad
 
 ## Tips
 
-- If some shots don't register, lower the speed. Many games cap fire rate at the gun's animation speed.
+- If some shots don't register, lower the speed. Games read input once per frame, so at 60 FPS anything above about 30 shots/sec can drop presses, and many games also cap fire rate at the gun's animation speed.
 - For Steam games, set **Steam Input** to **Disable** in the game's Properties → Controller.
 - Close DS4Windows or similar tools while this is running.
 - To use your controller normally again, untick **Enable device hiding** in HidHide.

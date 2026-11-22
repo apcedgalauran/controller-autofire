@@ -37,7 +37,7 @@ DEFAULTS = {
     "lt": False,
 }
 
-MIN_RATE, MAX_RATE = 4, 25
+MIN_RATE, MAX_RATE = 1, 60
 DUTY = 0.5
 TRIGGER_THRESHOLD = 60
 POLL_SECONDS = 0.002
@@ -294,12 +294,28 @@ class App:
                    bg=OFF, fg=TEXT, activebackground="#4a4e5c",
                    activeforeground=TEXT, width=3)
         tk.Button(row, text="−", command=lambda: self.change_rate(-1), **btn).pack(side="left")
-        self.rate_lbl = tk.Label(row, text="", bg=CARD, fg=TEXT,
-                                 font=(FONT, 13, "bold"))
-        self.rate_lbl.pack(side="left", expand=True)
+        mid = tk.Frame(row, bg=CARD)
+        mid.pack(side="left", expand=True)
+        digits_only = (root.register(lambda v: v == "" or (v.isdigit() and len(v) <= 3)), "%P")
+        self.rate_entry = tk.Entry(mid, width=3, justify="center", font=(FONT, 15, "bold"),
+                                   bg=OFF, fg=TEXT, insertbackground=TEXT, relief="flat",
+                                   highlightthickness=1, highlightbackground=CARD_LINE,
+                                   highlightcolor=ACCENT, validate="key",
+                                   validatecommand=digits_only)
+        self.rate_entry.pack(side="left", ipady=4)
+        tk.Label(mid, text="shots / sec", bg=CARD, fg=TEXT,
+                 font=(FONT, 12, "bold")).pack(side="left", padx=(8, 0))
+        self.rate_entry.bind("<Return>", self.apply_typed_rate)
+        self.rate_entry.bind("<KP_Enter>", self.apply_typed_rate)
+        self.rate_entry.bind("<FocusOut>", self.apply_typed_rate)
+        # clicking anywhere else finishes typing
+        root.bind_all("<Button-1>", lambda e: e.widget is self.rate_entry or root.focus_set(), add="+")
         tk.Button(row, text="+", command=lambda: self.change_rate(1), **btn).pack(side="right")
-        tk.Label(speed, text="If some shots don't register in a game, press − to slow it down.",
+        tk.Label(speed, text=f"Type a number ({MIN_RATE}–{MAX_RATE}) and press Enter, or use − / +.",
                  bg=CARD, fg=MUTED, font=(FONT, 9)).pack(anchor="w", pady=(8, 0))
+        tk.Label(speed, text="Games only read input once per frame, so at 60 FPS anything above\n"
+                             "about 30 can make shots drop. If that happens, go lower.",
+                 bg=CARD, fg=MUTED, font=(FONT, 9), justify="left").pack(anchor="w", pady=(2, 0))
 
         # ---- which buttons
         which = Card(wrap, "Which buttons auto-fire when held")
@@ -383,9 +399,22 @@ class App:
         self.refresh_static()
 
     def change_rate(self, step):
-        self.s["rate"] = max(MIN_RATE, min(MAX_RATE, self.s["rate"] + step))
+        self.set_rate(self.s["rate"] + step)
+
+    def set_rate(self, value):
+        self.s["rate"] = max(MIN_RATE, min(MAX_RATE, int(value)))
         save_settings(self.s)
         self.refresh_static()
+
+    def apply_typed_rate(self, _=None):
+        text = self.rate_entry.get().strip()
+        if text.isdigit():
+            self.set_rate(int(text))
+        else:
+            self.refresh_static()      # empty box: put the current value back
+        if _ is not None and getattr(_, "keysym", "") in ("Return", "KP_Enter"):
+            self.root.focus_set()
+        return "break"
 
     def on_check(self, key):
         self.s[key] = bool(self.vars[key].get())
@@ -398,7 +427,9 @@ class App:
         else:
             self.toggle_btn.configure(text="AUTO-FIRE OFF", bg=OFF, fg=MUTED,
                                       activebackground="#4a4e5c")
-        self.rate_lbl.configure(text=f"{self.s['rate']} shots / sec")
+        if self.root.focus_get() is not self.rate_entry:
+            self.rate_entry.delete(0, "end")
+            self.rate_entry.insert(0, str(self.s["rate"]))
 
     def tick(self):
         e = self.engine
@@ -453,6 +484,10 @@ def main():
         return
 
     hide_console()
+    try:
+        ctypes.windll.winmm.timeBeginPeriod(1)   # 1 ms timer so fast rates stay accurate
+    except Exception:
+        pass
     settings = load_settings()
     engine = Engine(settings, XInput, vg)
     engine.start()
