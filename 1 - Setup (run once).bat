@@ -22,6 +22,6 @@ winget install --id Nefarius.HidHide -e
 echo.
 echo ============================================
 echo  Done. RESTART your PC, then set up HidHide
-echo  (see README.md).
+echo  (see "READ ME.txt").
 echo ============================================
 pause

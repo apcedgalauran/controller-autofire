@@ -1,0 +1,29 @@
+CONTROLLER AUTOFIRE
+
+SETUP (once)
+1. Put your GameSir in PC/Xbox mode.
+2. Double-click "1 - Setup (run once).bat" and approve the prompts.
+3. Restart your PC.
+4. Open "HidHide Configuration Client" from the Start menu:
+   - Applications tab: click +, add your python.exe
+     (find it by running "where python" in Command Prompt)
+   - Devices tab: tick your GameSir controller
+   - Tick "Enable device hiding"
+
+EVERY TIME YOU PLAY
+1. Double-click "2 - Start Autofire.bat"
+2. Launch the game. Hold RT to auto-fire.
+
+IN-GAME (hold BACK/View + D-pad)
+  Up    = auto-fire on/off
+  Right = faster, Left = slower
+  Down  = also auto-fire RB
+
+To use your controller normally without the script, untick
+"Enable device hiding" in HidHide.
+
+THE LAST OF US PART II: your trainer's Rapid Fire (Num 8) already does
+this, so you don't need the script for that game.
+
+BLACK OPS 3: in Steam, right-click the game > Properties > Controller,
+set Steam Input to "Disable". Campaign / Zombies only, not online.

@@ -1,22 +1,14 @@
 """
 Universal controller auto-fire for Windows (offline / single-player use).
 
-How it works:
-  Your real controller (GameSir in Xbox/PC mode) is read by this script and
-  mirrored onto a virtual Xbox 360 controller. While you hold the fire button,
-  the virtual controller pulses it on/off at a fast rate. Every game that
-  supports an Xbox controller sees it as a normal pad, so it works everywhere.
-
-Requires:
-  - ViGEmBus driver   https://github.com/nefarius/ViGEmBus/releases
-  - pip install vgamepad XInput-Python
-  - Recommended: HidHide (hide the real pad from games, whitelist python.exe)
+Your real controller is mirrored onto a virtual Xbox 360 controller. While you
+hold the fire button, the virtual controller pulses it on/off at a fast rate.
 
 In-game controls (hold BACK / View, then press):
-  D-pad Up     auto-fire ON / OFF   (turn it off for bows, snipers, charge weapons)
+  D-pad Up     auto-fire ON / OFF
   D-pad Right  faster  (+1 shot/sec)
   D-pad Left   slower  (-1 shot/sec)
-  D-pad Down   also auto-fire RB    (for games that shoot with the bumper)
+  D-pad Down   also auto-fire RB
 
 Press Ctrl+C in this window to quit.
 """
@@ -34,16 +26,16 @@ import XInput
 import vgamepad as vg
 
 # ======================= SETTINGS =======================
-SHOTS_PER_SEC = 12        # starting fire rate
+SHOTS_PER_SEC = 12
 MIN_RATE, MAX_RATE = 4, 25
-DUTY = 0.5                # fraction of each cycle the button is held down
-TRIGGER_THRESHOLD = 60    # 0-255: how far you pull RT/LT before auto-fire starts
-AUTOFIRE_RT = True        # right trigger
-AUTOFIRE_RB = False       # right bumper (toggle in-game with BACK + D-pad Down)
-AUTOFIRE_LT = False       # left trigger (usually aim, so off by default)
+DUTY = 0.5
+TRIGGER_THRESHOLD = 60
+AUTOFIRE_RT = True
+AUTOFIRE_RB = False
+AUTOFIRE_LT = False
 START_ENABLED = True
-POLL_SECONDS = 0.002      # ~500 Hz update loop
-SOUND = True              # beep when you change settings
+POLL_SECONDS = 0.002
+SOUND = True
 # ========================================================
 
 DPAD_UP, DPAD_DOWN, DPAD_LEFT, DPAD_RIGHT = 0x0001, 0x0002, 0x0004, 0x0008
@@ -58,8 +50,6 @@ def beep(freq, ms=70):
 
 
 class Pulser:
-    """Turns a held button into a fast on/off pulse. First shot is instant."""
-
     def __init__(self):
         self.start = None
 
@@ -94,16 +84,16 @@ def main():
     enabled = START_ENABLED
     rb_auto = AUTOFIRE_RB
 
-    real = find_real_pad()   # find the real pad BEFORE creating the virtual one
+    real = find_real_pad()
 
     try:
         pad = vg.VX360Gamepad()
     except Exception as e:
         print("\nCould not create the virtual controller. Is ViGEmBus installed?")
         print(f"Details: {e}")
+        input("Press Enter to close...")
         sys.exit(1)
 
-    # Pass game rumble back to your real controller
     def rumble(client, target, large_motor, small_motor, led_number, user_data):
         try:
             XInput.set_vibration(real, large_motor / 255, small_motor / 255)
@@ -137,7 +127,6 @@ def main():
             newly_pressed = buttons & ~prev_buttons
             prev_buttons = buttons
 
-            # ---- BACK + D-pad combos (D-pad is hidden from the game while BACK is held)
             if buttons & BACK:
                 changed = False
                 if newly_pressed & DPAD_UP:
@@ -180,7 +169,6 @@ def main():
             else:
                 rb_p.output(False, now, period)
 
-            # ---- mirror everything to the virtual controller
             r = pad.report
             r.wButtons = buttons
             r.bLeftTrigger = lt
